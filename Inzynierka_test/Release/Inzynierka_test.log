@@ -1,0 +1,28 @@
+﻿Build started 2014-06-13 11:06:54.
+     1>Project "C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Inzynierka_test\Inzynierka_test.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\CImg library\FreeImage3154Win32\FreeImage\Dist" /I"C:\OpenGL\compiler needs\include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MTd /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Automata.cpp Cell.cpp Color.cpp Point.cpp Source.cpp
+         Automata.cpp
+         Cell.cpp
+         Color.cpp
+         Point.cpp
+         Source.cpp
+     1>Source.cpp(96): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include\stdio.h(218) : see declaration of 'fopen'
+       ResourceCompile:
+         C:\Program Files (x86)\Windows Kits\8.0\bin\x86\rc.exe /l"0x0409" /nologo /fo"Release\Inzynierka_test.res" Inzynierka_test.rc 
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Release\Inzynierka_test.exe" /NOLOGO /LIBPATH:"C:\CImg library\FreeImage3154Win32\FreeImage\Dist" /LIBPATH:"C:\OpenGL\compiler needs\lib" GLAUX.lib GLU32.lib glut32.lib OPENGL32.lib FreeImage.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Release\Inzynierka_test.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Release\Inzynierka_test.lib" /MACHINE:X86 /SAFESEH Release\Inzynierka_test.res
+         Release\Automata.obj
+         Release\Cell.obj
+         Release\Color.obj
+         Release\Point.obj
+         Release\Source.obj
+         Generating code
+         Finished generating code
+         Inzynierka_test.vcxproj -> C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Release\Inzynierka_test.exe
+     1>Done Building Project "C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Inzynierka_test\Inzynierka_test.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:11.31
