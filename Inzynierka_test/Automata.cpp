@@ -21,7 +21,7 @@ void Automata:: fillForMC(Cell **tab){
 		for(int j=0 ; j<sizeY ; j++){
 			tab[i][j].setState(1);
 			tab[i][j].setGrainID(id);
-			tab[i][j].kolor.setRandomColor();
+			//tab[i][j].kolor.setRandomColor();
 			id++;
 		}
 	}
@@ -77,7 +77,7 @@ void Automata::searchForGrains(Cell **tab, int sizeX , int sizeY){
 	
 	int counter = 0;
 
-	for(int i=0 ; i<=7 ; i++) {
+	for(int i=0 ; i<=3 ; i++) {
 		if( tab[x][y].getGrainID() != tab[x][y].pSwoiSasiedzi[i]->getGrainID() )
 			counter++;
 		
@@ -88,7 +88,7 @@ void Automata::searchForGrains(Cell **tab, int sizeX , int sizeY){
 
  void Automata::monteCarlo(Cell** tab ,  int x, int y){
 	
-	 int ra = rand() % 8 + 0;
+	 int ra = rand() % 4 + 0;
 
 		int ene1st = energyCount(tab,x,y);
 		int oldColor = tab[x][y].getGrainID();
@@ -160,20 +160,93 @@ void Automata::searchForGrains(Cell **tab, int sizeX , int sizeY){
  void Automata::podczepSasiadowVonNeumanna(Cell **tab, Cell **oldTab , int sizeX , int sizeY){
 	for(int i=0 ; i<sizeX ; ++i){
 		for(int j=0 ; j<sizeY ; ++j){
-			int above = mod( (i-1) , sizeX );
-			int below = mod( (i+1) , sizeX );
-			int left =  mod( (j-1) , sizeY );
-			int right = mod( (j+1) , sizeY );
+			////int above = mod( (i-1) , sizeX );
+			//int below = mod( (i+1) , sizeX );
+			//int left =  mod( (j-1) , sizeY );
+			//int right = mod( (j+1) , sizeY );
 
-			tab[i][j].pNeighbours[0] = & oldTab[above][j];
-			tab[i][j].pNeighbours[1] = & oldTab[i][right];
-			tab[i][j].pNeighbours[2] = & oldTab[below][j];
-			tab[i][j].pNeighbours[3] = & oldTab[i][left];
+			//tab[i][j].pNeighbours[0] = & oldTab[above][j];
+			//tab[i][j].pNeighbours[1] = & oldTab[i][right];
+			//tab[i][j].pNeighbours[2] = & oldTab[below][j];
+			//tab[i][j].pNeighbours[3] = & oldTab[i][left];
 
-			tab[i][j].pNeighbours[4] = NULL;
-			tab[i][j].pNeighbours[5] = NULL;
-			tab[i][j].pNeighbours[6] = NULL;
-			tab[i][j].pNeighbours[7] = NULL;
+			//tab[i][j].pNeighbours[4] = NULL;
+			//tab[i][j].pNeighbours[5] = NULL;
+			//tab[i][j].pNeighbours[6] = NULL;
+			//tab[i][j].pNeighbours[7] = NULL;
+
+			int above = i - 1;
+			int below = i + 1;
+			int left = j - 1;
+			int right = j + 1;
+
+	
+
+
+			if( i== 0 && j == 0 ){ // lewy gorny rog
+				tab[i][j].pNeighbours[0] = & oldTab[i][j];
+				tab[i][j].pNeighbours[1] = & oldTab[i][j];
+				
+				tab[i][j].pNeighbours[2] = & oldTab[i][j+1]; // Prawo
+				tab[i][j].pNeighbours[3] = & oldTab[i+1][j]; // Dol
+			}
+			if( i == 0 && j > 0  && j != sizeY-1 ){ // gorna krawedz
+				tab[i][j].pNeighbours[0] = & oldTab[i][j]; 
+				
+				tab[i][j].pNeighbours[1] = & oldTab[i][j+1]; // Prawo
+				tab[i][j].pNeighbours[2] = & oldTab[i+1][j]; // Dol
+				tab[i][j].pNeighbours[3] = & oldTab[i][j-1]; // Lewo
+			}
+			if( j == sizeY-1 && i == 0 ){ // prawy gorny rog
+				tab[i][j].pNeighbours[0] = & oldTab[i][j];
+				tab[i][j].pNeighbours[1] = & oldTab[i][j];
+				
+				tab[i][j].pNeighbours[2] = & oldTab[i+1][j]; // Dol
+				tab[i][j].pNeighbours[3] = & oldTab[i][j-1]; // Lewo
+			}
+			if( j == sizeY-1 && i> 0 && i != sizeX-1){ // prawa krawedz
+				tab[i][j].pNeighbours[0] = & oldTab[i][j]; 
+				
+				tab[i][j].pNeighbours[1] = & oldTab[i-1][j]; // Gora
+				tab[i][j].pNeighbours[2] = & oldTab[i+1][j]; // Dol
+				tab[i][j].pNeighbours[3] = & oldTab[i][j-1]; // Lewo
+				
+			}
+			if( i == sizeX-1 && i == sizeX-1){ // prway dolny rog
+				tab[i][j].pNeighbours[0] = & oldTab[i][j];
+				tab[i][j].pNeighbours[1] = & oldTab[i][j];
+				
+				tab[i][j].pNeighbours[2] = & oldTab[i-1][j]; // Gora
+				tab[i][j].pNeighbours[3] = & oldTab[i][j-1]; // Lewo
+			}
+			if( i == sizeX-1 && j>0 && j != sizeY-1){ // dolna krawedz
+				tab[i][j].pNeighbours[0] = & oldTab[i][j];
+				
+				tab[i][j].pNeighbours[1] = & oldTab[i-1][j]; // Gora
+				tab[i][j].pNeighbours[2] = & oldTab[i][j+1]; // Prawo
+				tab[i][j].pNeighbours[3] = & oldTab[i][j-1]; // Lewo
+				
+			}
+			if( i== sizeX-1 && j == 0 ) {// lewy dolny rog
+				tab[i][j].pNeighbours[0] = & oldTab[i][j];
+				tab[i][j].pNeighbours[1] = & oldTab[i][j];
+				
+				tab[i][j].pNeighbours[2] = & oldTab[i-1][j]; // Gora
+				tab[i][j].pNeighbours[3] = & oldTab[i][j+1]; // Prawo
+			}
+			if ( j == 0 && i> 0 && i != sizeX-1){
+				tab[i][j].pNeighbours[0] = & oldTab[i][j];
+				
+				tab[i][j].pNeighbours[1] = & oldTab[i-1][j]; // Gora
+				tab[i][j].pNeighbours[2] = & oldTab[i][j+1]; // Prawo
+				tab[i][j].pNeighbours[3] = & oldTab[i+1][j]; // Dol
+			}
+			if( i > 0 && j > 0  && i != sizeX-1 && j != sizeY-1){
+				tab[i][j].pNeighbours[0] = & oldTab[i-1][j]; // Gora
+				tab[i][j].pNeighbours[1] = & oldTab[i][j+1]; // Prawo
+				tab[i][j].pNeighbours[2] = & oldTab[i+1][j]; // Dol
+				tab[i][j].pNeighbours[3] = & oldTab[i][j-1]; // Lewo
+			}
 
 		}
 
@@ -185,7 +258,7 @@ void Automata::searchForGrains(Cell **tab, int sizeX , int sizeY){
 void Automata::podczepSwpochSasiadowVonNeumanna(Cell **tab , int sizeX , int sizeY){
 	for(int i=0 ; i<sizeX ; ++i){
 		for(int j=0 ; j<sizeY ; ++j){
-			int above = mod( (i-1) , sizeX );
+			/*int above = mod( (i-1) , sizeX );
 			int below = mod( (i+1) , sizeX );
 			int left =  mod( (j-1) , sizeY );
 			int right = mod( (j+1) , sizeY );
@@ -198,7 +271,75 @@ void Automata::podczepSwpochSasiadowVonNeumanna(Cell **tab , int sizeX , int siz
 			tab[i][j].pSwoiSasiedzi[4] = NULL;
 			tab[i][j].pSwoiSasiedzi[5] = NULL;
 			tab[i][j].pSwoiSasiedzi[6] = NULL;
-			tab[i][j].pSwoiSasiedzi[7] = NULL;
+			tab[i][j].pSwoiSasiedzi[7] = NULL;*/
+
+
+
+			
+			if( i== 0 && j == 0 ){ // lewy gorny rog
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j+1]; // Prawo
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i+1][j]; // Dol
+			}
+			if( i == 0 && j > 0  && j != sizeY-1 ){ // gorna krawedz
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j]; 
+				
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j+1]; // Prawo
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i+1][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j-1]; // Lewo
+			}
+			if( j == sizeY-1 && i == 0 ){ // prawy gorny rog
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i+1][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j-1]; // Lewo
+			}
+			if( j == sizeY-1 && i> 0 && i != sizeX-1){ // prawa krawedz
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j]; 
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i-1][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i+1][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j-1]; // Lewo
+				
+			}
+			if( i == sizeX-1 && i == sizeX-1){ // prway dolny rog
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i-1][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j-1]; // Lewo
+			}
+			if( i == sizeX-1 && j>0 && j != sizeY-1){ // dolna krawedz
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i-1][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j+1]; // Prawo
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j-1]; // Lewo
+				
+			}
+			if( i== sizeX-1 && j == 0 ) {// lewy dolny rog
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i-1][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j+1]; // Prawo
+			}
+			if ( j == 0 && i> 0 && i != sizeX-1){
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i-1][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j+1]; // Prawo
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i+1][j]; // Dol
+			}
+			if( i > 0 && j > 0  && i != sizeX-1 && j != sizeY-1){
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i-1][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j+1]; // Prawo
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i+1][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j-1]; // Lewo
+			}
 
 		}
 	}
@@ -278,7 +419,7 @@ void Automata::podczepSasiadowMoorea(Cell **tab, Cell **oldTab , int sizeX , int
 void Automata::podczepSwpochSasiadowMoorea(Cell **tab , int sizeX , int sizeY){
 	for(int i=0 ; i<sizeX ; ++i){
 		for(int j=0 ; j<sizeY ; ++j){
-			int above = mod( (i-1) , sizeX );
+			/*int above = mod( (i-1) , sizeX );
 			int below = mod( (i+1) , sizeX );
 			int left =  mod( (j-1) , sizeY);
 			int right = mod( (j+1) , sizeY );
@@ -291,7 +432,121 @@ void Automata::podczepSwpochSasiadowMoorea(Cell **tab , int sizeX , int sizeY){
 			tab[i][j].pSwoiSasiedzi[4] = & tab[below][right];
 			tab[i][j].pSwoiSasiedzi[5] = & tab[below][j];
 			tab[i][j].pSwoiSasiedzi[6] = & tab[below][left];
-			tab[i][j].pSwoiSasiedzi[7] = & tab[i][left];
+			tab[i][j].pSwoiSasiedzi[7] = & tab[i][left];*/
+
+
+			int right = j +1;
+			int left = j-1;
+			int above = i-1;
+			int below = i+1;
+
+
+
+
+			if( i== 0 && j == 0 ){ // lewy gorny rog
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[6] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][right]; // Prawo
+				tab[i][j].pSwoiSasiedzi[4] = & tab[below][right]; 
+				tab[i][j].pSwoiSasiedzi[5] = & tab[below][j]; // Dol
+			}
+			if( i == 0 && j > 0  && j != sizeY-1 ){ // gorna krawedz
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j]; 
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j]; 
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j]; 
+				
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][right]; // Prawo
+				tab[i][j].pSwoiSasiedzi[4] = & tab[below][right];
+				tab[i][j].pSwoiSasiedzi[5] = & tab[below][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[6] = & tab[below][left];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][left]; // Lewo
+			}
+			if( j == sizeY-1 && i == 0 ){ // prawy gorny rog
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[1] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[4] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[5] = & tab[below][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[6] = & tab[below][left];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][left]; // Lewo
+			}
+			if( j == sizeY-1 && i> 0 && i != sizeX-1){ // prawa krawedz
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j]; 
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j]; 
+				tab[i][j].pSwoiSasiedzi[4] = & tab[i][j]; 
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[above][left]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[above][j];
+				tab[i][j].pSwoiSasiedzi[5] = & tab[below][j]; // Dol
+				tab[i][j].pSwoiSasiedzi[6] = & tab[below][left];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][left]; // Lewo
+				
+			}
+			if( i == sizeX-1 && i == sizeX-1){ // prway dolny rog
+				tab[i][j].pSwoiSasiedzi[2] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[4] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[5] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[6] = & tab[i][j];
+
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[above][left]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[above][j];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][left]; // Lewo
+			}
+			if( i == sizeX-1 && j>0 && j != sizeY-1){ // dolna krawedz
+				tab[i][j].pSwoiSasiedzi[4] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[5] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[6] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[0] = & tab[above][left]; // GoraLewo
+				tab[i][j].pSwoiSasiedzi[1] = & tab[above][j]; 
+				tab[i][j].pSwoiSasiedzi[2] = & tab[above][right]; 
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][right]; 
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][left]; 
+				
+			}
+			if( i== sizeX-1 && j == 0 ) {// lewy dolny rog
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[6] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][j];
+				
+
+
+				tab[i][j].pSwoiSasiedzi[1] = & tab[above][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[2] = & tab[above][right]; // Prawo
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][right]; // Dol
+				tab[i][j].pSwoiSasiedzi[4] = & tab[below][right];
+				tab[i][j].pSwoiSasiedzi[5] = & tab[below][j];
+			}
+			if ( j == 0 && i> 0 && i != sizeX-1){ // lewa krawedz
+				tab[i][j].pSwoiSasiedzi[0] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[4] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[5] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[6] = & tab[i][j];
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][j];
+				
+				tab[i][j].pSwoiSasiedzi[1] = & tab[above][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[2] = & tab[above][right]; // Prawo
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][right]; // Dol
+			}
+			if( i > 0 && j > 0  && i != sizeX-1 && j != sizeY-1){
+				tab[i][j].pSwoiSasiedzi[0] = & tab[above][left]; // Gora
+				tab[i][j].pSwoiSasiedzi[1] = & tab[above][j]; // Gora
+				tab[i][j].pSwoiSasiedzi[2] = & tab[above][right]; // Prawo
+				tab[i][j].pSwoiSasiedzi[3] = & tab[i][right]; // Dol
+				tab[i][j].pSwoiSasiedzi[4] = & tab[below][right]; 
+				tab[i][j].pSwoiSasiedzi[5] = & tab[below][j];
+				tab[i][j].pSwoiSasiedzi[6] = & tab[below][left]; 
+				tab[i][j].pSwoiSasiedzi[7] = & tab[i][left]; // Lewo
+			}
+
 
 		}
 	}

@@ -11,6 +11,8 @@
 #include <omp.h>
 #include "Automata.h"
 #include <fstream>
+#include <mpi.h>
+#include <cstdio>
 
 
 #ifdef __APPLE__
@@ -28,96 +30,38 @@ enum{
 	//PENTA_RIGHT,
 	HEXA
 };
+//GOBAL MPI_____________________________________
 
-//GLOBAL VARIABLES***************************************************
+int globalRank;
+int mamsebuffor;
+
+
+//GLOBAL VARIABLES***************************************************+
 unsigned char* bmpData;
 static int id;
 static int button_x;
 static int button_y;
 
 
-const int sizeX = 400;
-const int sizeY = 400;
+const int sizeX = 600;
+const int sizeY = 600;
 const int PIXEL = 1 ;
 
+
+
+const int buffSize = sizeY;
+int sendBuffor[buffSize];
+int recvBuffor[buffSize];
+
+int sendMerge[sizeX/2][sizeY];
+int recvMerge[sizeX/2][sizeY];
+
 Automata autom(sizeX,sizeY);
-static int growth = MOORE;
+static int growth = VON_NEAUMANN;
+MPI_Status status;
+MPI_Status status2;
 
-//*******************************************************************
-//unsigned char* readBMP(char* filename)
-//{
-//    int i;
-//    FILE* f = fopen(filename, "rb");
-//
-//    if(f == NULL)
-//        throw "Argument Exception";
-//
-//    unsigned char info[54];
-//    fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-//
-//    // extract image height and width from header
-//    int width = *(int*)&info[18];
-//    int height = *(int*)&info[22];
-//
-//    cout << endl;
-//    cout << "  Name: " << filename << endl;
-//    cout << " Width: " << width << endl;
-//    cout << "Height: " << height << endl;
-//
-//    int row_padded = (width*3 + 3) & (~3);
-//    unsigned char* data = new unsigned char[row_padded];
-//    unsigned char tmp;
-//
-//    for(int i = 0; i < height; i++)
-//    {
-//        fread(data, sizeof(unsigned char), row_padded, f);
-//        for(int j = 0; j < width*3; j += 3)
-//        {
-//            // Convert (B, G, R) to (R, G, B)
-//            tmp = data[j];
-//            data[j] = data[j+2];
-//            data[j+2] = tmp;
-//
-//           // cout << "R: "<< (int)data[j] << " G: " << (int)data[j+1]<< " B: " << (int)data[j+2]<< endl;
-//			//autom.tab[i][j/3].kolor.setColor( (int)data[j] , (int)data[j+1] ,  (int)data[j+2] );
-//        }
-//    }
-//
-//	
-//
-//    fclose(f);
-//    return data;
-//}
-	
-
-unsigned char* readBMP(char* filename)
-{
-    int i;
-    FILE* f = fopen(filename, "rb");
-    unsigned char info[54];
-    fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-
-    // extract image height and width from header
-    int width = *(int*)&info[18];
-    int height = *(int*)&info[22];
-
-    int size = 3 * width * height;
-    unsigned char* data = new unsigned char[size]; // allocate 3 bytes per pixel
-    fread(data, sizeof(unsigned char), size, f); // read the rest of the data at once
-    fclose(f);
-
-    for(i = 0; i < size; i += 3)
-    {
-            unsigned char tmp = data[i];
-            data[i] = data[i+2];
-            data[i+2] = tmp;
-			// cout << "R: "<< (int)data[i] << " G: " << (int)data[i+1]<< " B: " << (int)data[i+2]<< endl;
-    }
-
-	
-
-    return data;
-}
+//*****************************************************************************
 
 
 
@@ -152,25 +96,6 @@ void addIDs(){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //************************OPENGL FUNCTIONS *********************
 
 	void initRendering();
@@ -180,61 +105,45 @@ void addIDs(){
 	void handleKeypress(unsigned char key, 	int x, int y) ;
 	void printTab(Cell ** tab);
 	void menu(int value);
-	void getScreenShot(){
-		
-
-		BYTE* pixels = new BYTE[ 3 *glutGet(GLUT_WINDOW_WIDTH) * glutGet(GLUT_WINDOW_HEIGHT)];
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glReadPixels(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
-			
-		FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT), 3 * glutGet(GLUT_WINDOW_WIDTH), 24, 0x0000FF, 0xFF0000, 0x00FF00, false);
-		FreeImage_Save(FIF_BMP, image, "C:/test.bmp", 0);
-
-			
-			FreeImage_Unload(image);
-			delete [] pixels;
-	}
-
-	void saveToFile(){
-		ofstream file;
-		file.open("data.txt");
-		if(file.good() == true){
-			cout << "Plik dziala" <<endl;
-		for(int i=0 ; i<sizeX ; ++i)
-			for(int j=0 ; j<sizeY ; ++j){
-
-				file << autom.tab[i][j].getGrainID() << " : " << i << " " << j <<endl;
-			}
-
-		}
-
-		else 
-		cout<<"nie dziala"<<endl;
-
-	}
-
-
-
 
 
 //*******************************************************************
 int main(int argc, char** argv) {
+
+
+	// Open MPI
 	
+	int  nproc, rank;
+	MPI_Init( &argc, &argv );
+	MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+	globalRank = rank;
+	MPI_Comm_size( MPI_COMM_WORLD, &nproc );
+	printf( "Hello world from proc: %d , of %d \n" , rank, nproc);
+
+
+	
+
 	srand (time(NULL));
+	
 	autom.tab = autom.createTab(autom.tab);
 	autom.OldTab = autom.createTab(autom.OldTab);
 	
 
 
-	autom.podczepSasiadowMoorea(autom.tab, autom.OldTab , sizeX,sizeY);
-	autom.podczepSwpochSasiadowMoorea(autom.tab, sizeX,sizeY);
-	autom.fillForMC(autom.tab);
-
+		//autom.podczepSasiadowMoorea(autom.tab, autom.OldTab , sizeX,sizeY);
+		autom.podczepSwpochSasiadowMoorea(autom.tab, sizeX,sizeY);
+		//autom.podczepSwpochSasiadowVonNeumanna(autom.tab, sizeX,sizeY);
+		
+		autom.fillForMC(autom.tab);
+	
+			cout << autom.tab[20][20].getGrainID() << endl;
 glutInit( & argc, argv );
     glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB );
     glutInitWindowSize( sizeX * PIXEL	, sizeY * PIXEL );
     glutCreateWindow( "Inz" );
+
+
+
 	glViewport( 10, 10, 600, 600 );
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -247,15 +156,13 @@ glutInit( & argc, argv );
 	glClear( GL_COLOR_BUFFER_BIT );
 	glFlush();
 	glutSwapBuffers();
-	
-	
-	
-	
+
 	
 	glutCreateMenu( menu );
 	 #ifdef WIN32
     
     glutAddMenuEntry( "Rozrost Moorea", MOORE );
+
     glutAddMenuEntry( "Rozrost Von Neumanna", VON_NEAUMANN );
 	//glutAddMenuEntry( "Penta Right", PENTA_RIGHT );
 	glutAddMenuEntry( "HEXA", HEXA );
@@ -278,9 +185,11 @@ glutInit( & argc, argv );
 	glutReshapeFunc(handleResize);
 	 glutMouseFunc( MouseButton );
 	//  glutMotionFunc( MouseMotion );
+	
 
 
-glutMainLoop(); //Start the main loop.  glutMainLoop doesn't return.
+	glutMainLoop(); //Start the main loop.  glutMainLoop doesn't return.
+	MPI_Finalize();
 	return 0; 
 }
 
@@ -292,19 +201,8 @@ static void MouseButton (int button , int state , int x , int y){
 
 	if (button == GLUT_LEFT_BUTTON)
 	{
-		if ( state == GLUT_DOWN)
-		{
-	/*	button_x = x;
-		button_y = y;
+		if ( state == GLUT_DOWN){
 
-		cout<< "Coord X: "<<button_x <<endl;
-		cout<< "Coord Y: "<<button_y <<endl;*/
-
-		int results[4];
-		
-		glGetIntegerv( GL_VIEWPORT, results );
-
-		cout<<results[0]<<" "<<results[1] <<" "<< results[2] << " "<< results[3] << endl;
 		
 		}
 		
@@ -313,122 +211,131 @@ static void MouseButton (int button , int state , int x , int y){
 }
 
  //***************************************************
-void handleKeypress(unsigned char key, 
-					int x, int y) {    
+void handleKeypress(unsigned char key, int x, int y) {    
+	
 	switch (key) {
 	case '+':{
 		cout<<"+"<<endl;
-#pragma omp parallel for
-		for(int iter =0 ; iter < 100 ; ++iter){
 
-		for(int i=0 ; i<sizeX ; ++i){
-			for(int j=0 ; j<sizeY ; ++j){
-				autom.monteCarlo(autom.tab , i , j);
+		if(globalRank == 0){
+		#pragma omp parallel for
+		for(int iter =0 ; iter < 3 ; ++iter){
+
+			for(int i=0 ; i<sizeX/2 ; ++i){
+				for(int j=0 ; j<sizeY ; ++j){
+					autom.monteCarlo(autom.tab , i , j);
+				
+
+				}
+				
+
+			}
+		}//iter
+
+	//WYSLANIE/ODEBRANIE BRZEGOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+			for(int i=0 ; i< buffSize ; ++i){
+				//sendBuffor[i] = autom.tab[i][sizeY/2-1].getGrainID();
+				sendBuffor[i] = autom.tab[sizeY/2-1][i].getGrainID();
+			}
+
+			
+			MPI_Send(sendBuffor , buffSize, MPI_INT, 1, 0, MPI_COMM_WORLD);
+			MPI_Recv(recvBuffor, buffSize, MPI_INT, 1, MPI_ANY_TAG, MPI_COMM_WORLD,  &status);
+			//cout << "Otrzymalem od prc 1: " << recvBuffor[2] << endl;
+
+			for(int i=0 ; i<buffSize ; ++i) {
+				autom.tab[sizeY/2][i].setGrainID( recvBuffor[i] );
+				//autom.tab[i][sizeY/2].setGrainID( recvBuffor[i] );
+			}
+			
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//ODEBRANIE MERGE!!!!!!!!!!!!!!!!!
+		
+			MPI_Recv( &(recvMerge[0][0]), (sizeX/2)*sizeY, MPI_INT, 1, MPI_ANY_TAG, MPI_COMM_WORLD,  &status2);
+
+
+			cout << "odebralem recvMerge " << recvMerge[2][2] << endl;
+			for(int i=0 ; i<sizeX/2 ; ++i){
+				for(int j=0 ; j<sizeY ; ++j){
+					autom.tab[i+sizeX/2][j].setGrainID(recvMerge[i][j]);
+
+				}
+			}
+
+		}//ifRANK
+
+
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RANK_1~~~~~~~~~~~~~~~~~
+		else if(globalRank == 1){
+			#pragma omp parallel for
+		for(int iter =0 ; iter < 3 ; ++iter){
+
+			for(int i=sizeX/2 ; i<sizeX ; ++i){
+				for(int j=0 ; j<sizeY ; ++j){
+					autom.monteCarlo(autom.tab , i , j);
+		
+				}
+			}
+		}//iter
+		
+	//WYSLANIE/ODEBRANIE BRZEGOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		for(int i=0 ; i< buffSize ; ++i)
+			sendBuffor[i] = autom.tab[i][sizeY/2 ].getGrainID();
+			
+
+		MPI_Send(sendBuffor , buffSize, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		MPI_Recv(recvBuffor, buffSize, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD,  &status);
+
+		for(int i=0 ; i<buffSize ; ++i) {
+				autom.tab [sizeY/2 -1][i].setGrainID ( recvBuffor[i] );
+			}
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+		//Wyslanie MERGE!!!!!!!!!!!!!!!!!
+
+		for(int i=0 ; i<sizeX/2 ; i++)
+			for(int j=0 ; j<sizeY ; j++){
+				sendMerge[i][j] = autom.tab[sizeX/2 + i][j].getGrainID();
 				
 
 			}
 
-		}
-		}
+		cout << sendMerge[2][2] << " : send merger22" << endl; ;
+		MPI_Send(&(sendMerge[0][0]) , (sizeX/2)*sizeY, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		
+		}//ifRank
+	   //} //iter
 		printTab(autom.tab);
 		break;
+			 
+			 
 			 }
-	case '-':
-		{
-			autom.assignBorders(autom.tab,sizeX,sizeY);
-			printTab(autom.tab);
-			break;
 
-		}
-	case '*' :
-		{
-
-			autom.searchForGrains(autom.tab,sizeX,sizeY);
-			break;
-		}
-
-	case 'p' :
-		{
+	case 'p' : {
 			printTab(autom.tab);
 			break;
 		}
 
-	case 's' :
-		{
-			
-			autom.addSubGrains(autom.tab,4);
-			printTab(autom.tab);
-			break;
-		}
 
-	case 'z':
-		{
-			if(growth == MOORE ){
-				autom.podczepSasiadowMoorea(autom.tab, autom.OldTab, sizeX,sizeY);
-				autom.podczepSwpochSasiadowMoorea(autom.tab,sizeX,sizeY);
-				autom.rozrostMoorea(autom.tab,autom.OldTab,sizeX,sizeY);
-			}
-			else if(growth == VON_NEAUMANN ) {
-				autom.podczepSasiadowVonNeumanna(autom.tab,autom.OldTab, sizeX,sizeY);
-				autom.podczepSwpochSasiadowVonNeumanna(autom.tab,sizeX,sizeY);
-				autom.rozrostVonNeumanna(autom.tab,autom.OldTab,sizeX,sizeY);
-			}
-			else if(growth == HEXA ){
-				autom.podczepSasiadowHexR(autom.tab,autom.OldTab , sizeX,sizeY);
-				autom.podczepSwpochSasiadowHexRIGHT(autom.tab,sizeX,sizeY);
-				autom.rozrostHexaRIGHT(autom.tab,autom.OldTab,sizeX,sizeY);
-
-
-			}
-
-			printTab(autom.tab);
-			break;
-
-		}
-
-	case 'x' :
-		{
-			saveToFile();
-			/*for(int i=0 ; i<sizeX ; i++ ){
-				for(int j=0 ; j<sizeY ; j++){
-					cout<< autom.tab[i][j].czyGranica;
-				}
-				     cout << endl;
-				}*/
-			break;
-		}
-	case 'i' :
-		{
+	case 'i' :{
 			for(int i=0 ; i<sizeX ; i++ ){
 				for(int j=0 ; j<sizeY ; j++){
 					cout<<autom.tab[i][j].getGrainID() <<" ";
-				//	cout<<i <<" _ "<<j <<" "<<autom.tab[i][j].kolor.R << " G: " << autom.tab[i][j].kolor.B << " B: " << autom.tab[i][j].kolor.B <<endl;
 				}
 				cout<<endl;
 			}
 			break;
 		}
 
-	case 'a' :
-		{
-			//getScreenShot();
-			bmpData = readBMP("test.bmp");
-			// data[j * width + i], data[j * width + i + 1] and data[j * width + i + 2].
-
-			int width = sizeX;
-			int height = sizeY;
-			for(int i=0 ; i<width ; i++ )
-				for(int j=0 ; j<height ; j++){
-
-						autom.tab[i][j].kolor.setColor( (int)bmpData[3* i * width + 3*j + 2] , (int)bmpData[3 *i * width + 3*j + 1] ,  (int)bmpData[3 *i*width + 3*j] );
-
-						
-				}
-				printTab(autom.tab);
-				addIDs();
-
-			break;
-		}
 
 		case 27: //Escape key
 			exit(0); //Exit the program
@@ -436,8 +343,7 @@ void handleKeypress(unsigned char key,
 }
 
 void menu(int value){
-	switch (value)
-	{
+	switch (value){
 	case  MOORE :
 		{
 			growth = MOORE;
@@ -463,13 +369,6 @@ void menu(int value){
 
 
 void drawScene() {
-	//Clear information from last draw
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glOrtho( 0 , rozm*PIXEL , rozm*PIXEL , 0 , -1, 1);
-	//glMatrixMode(GL_MODELVIEW); //Switch to the drawing perspective
-	//glLoadIdentity(); //Reset the drawing perspective
 	glClearColor( 0.0, 0.1, 0.0, 0.0 );
 	glClear( GL_COLOR_BUFFER_BIT );
 	printTab(autom.tab);
@@ -499,8 +398,10 @@ void maluj(Color kol){
 
 }
 void printTab(Cell **tab){
-	int ilekolorow = 35;//35
+	
 	glPointSize(PIXEL);
+
+	if(globalRank == 0  ){
 
 
 	for( int i=0 ; i<sizeX ; i++){
@@ -511,12 +412,41 @@ void printTab(Cell **tab){
 				
 			}
 
-		//	else if (tab[i][j].getState() == 2 ){
-			//	tab[i][j].kolor.setColor(tab[i][j].kolor.R , tab[i][j].kolor.G , tab[i][j].kolor.B);
-			//	if(tab[i][j].czyGranica == true)
-			//				
-
-		//	}
+			if(tab[i][j].getGrainID() % 2 == 0 ){
+				tab[i][j].kolor.R = 255;
+				tab[i][j].kolor.G = 0;
+				tab[i][j].kolor.B = 0;
+			}
+			else if(tab[i][j].getGrainID() % 3 == 0 ){
+				tab[i][j].kolor.R = 0;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 0;
+			}
+			else if(tab[i][j].getGrainID() % 5 == 0 ){
+				tab[i][j].kolor.R = 0;
+				tab[i][j].kolor.G = 0;
+				tab[i][j].kolor.B = 255;
+			}
+			else if(tab[i][j].getGrainID() % 7 == 0 ){
+				tab[i][j].kolor.R = 255;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 0;
+			}
+				else if(tab[i][j].getGrainID() % 11 == 0 ){
+				tab[i][j].kolor.R = 255;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 255;
+			}
+			else if(tab[i][j].getGrainID() % 13 == 0 ){
+				tab[i][j].kolor.R = 0;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 255;
+			}
+			else{
+				tab[i][j].kolor.R = 110;
+				tab[i][j].kolor.G = 100;
+				tab[i][j].kolor.B = 100;
+			}
 			
 			maluj(tab[i][j].kolor);
 		
@@ -527,6 +457,71 @@ void printTab(Cell **tab){
 		}
 	
 	}
+	}// rank 0 
+
+
+	
+	if(globalRank == 1  ){
+
+
+	for( int i=sizeX/2 - 1 ; i<sizeX ; i++){
+		for(int  j=0 ; j<sizeY ; j++){
+			if(tab[i][j].getState() == 1 && tab[i][j].czyGranica  == true) {
+			
+					tab[i][j].kolor.setColor(100,100,100);
+				
+			}
+
+		
+			if(tab[i][j].getGrainID() % 2 == 0 ){
+				tab[i][j].kolor.R = 255;
+				tab[i][j].kolor.G = 0;
+				tab[i][j].kolor.B = 0;
+			}
+			else if(tab[i][j].getGrainID() % 3 == 0 ){
+				tab[i][j].kolor.R = 0;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 0;
+			}
+			else if(tab[i][j].getGrainID() % 5 == 0 ){
+				tab[i][j].kolor.R = 0;
+				tab[i][j].kolor.G = 0;
+				tab[i][j].kolor.B = 255;
+			}
+			else if(tab[i][j].getGrainID() % 7 == 0 ){
+				tab[i][j].kolor.R = 255;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 0;
+			}
+				else if(tab[i][j].getGrainID() % 11 == 0 ){
+				tab[i][j].kolor.R = 255;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 255;
+			}
+			else if(tab[i][j].getGrainID() % 13 == 0 ){
+				tab[i][j].kolor.R = 0;
+				tab[i][j].kolor.G = 255;
+				tab[i][j].kolor.B = 255;
+			}
+			else{
+				tab[i][j].kolor.R = 110;
+				tab[i][j].kolor.G = 100;
+				tab[i][j].kolor.B = 100;
+			}
+			
+			maluj(tab[i][j].kolor);
+		
+		    glBegin(GL_POINTS);
+					glVertex2f(i*PIXEL , j*PIXEL);
+			glEnd();
+			
+		}
+	
+	}
+	}// rank 0 
+
+
+
 	glutSwapBuffers(); // mocno zwalnia, dlatego  poza forem
 	}
 

@@ -30,11 +30,5 @@ private:
 	int state;
 
 
-	
-
-	
-	
-
-	
 };
 
