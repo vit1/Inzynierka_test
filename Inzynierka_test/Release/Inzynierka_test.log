@@ -1,4 +1,4 @@
-﻿Build started 2014-06-22 13:21:36.
+﻿Build started 2014-06-23 22:47:30.
      1>Project "C:\Users\ViT\documents\visual studio 2012\Projects\Inzynierka_test\Inzynierka_test\Inzynierka_test.vcxproj" on node 2 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files\Microsoft HPC Pack 2012\Inc" /I"C:\CImg library\FreeImage3154Win32\FreeImage\Dist" /I"C:\OpenGL\compiler needs\include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MTd /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Automata.cpp Cell.cpp Color.cpp Point.cpp Source.cpp
@@ -23,4 +23,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:05.19
+Time Elapsed 00:00:12.17
